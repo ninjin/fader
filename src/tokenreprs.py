@@ -32,7 +32,7 @@ def _argparser():
             default=stdout, help='output file (default: stdout)')
     argparser.add_argument('-e', '--input-encoding', default='utf-8',
             help='input encoding (default: utf-8)')
-    argparser.add_argument('-s', '--simstring-dbs',
+    argparser.add_argument('-s', '--simstring-dbs', action='store_true',
             help='treat lexical resources as paths to SimString databases')
     argparser.add_argument('-v', '--verbose', action='store_true',
             help='enable additional system output on stderr')
