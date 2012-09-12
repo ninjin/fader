@@ -11,6 +11,7 @@ from __future__ import print_function
 
 from argparse import ArgumentParser, FileType
 from collections import defaultdict
+from datetime import datetime, timedelta
 from os.path import dirname, join as path_join
 from sys import path as sys_path, stderr, stdin, stdout
 
@@ -69,24 +70,41 @@ def _token_reprs(tokens, db_paths, verbose=False):
     from simstring import cosine as simstring_cosine
     from simstring import reader as simstring_reader
 
+    if verbose:
+        db_timings = []
+
     repr_by_token = defaultdict(list)
     for db_path_i, db_path in enumerate(db_paths, start=1):
         if verbose:
+            db_timing_start = datetime.utcnow()
             _vprint('Opening DB ({}/{}): {}'.format(db_path_i, len(db_paths),
                 db_path))
+
         reader = simstring_reader(db_path)
         reader.measure = simstring_cosine
 
         if verbose:
             _vprint('Querying DB...', end='')
+
         for token_i, token in enumerate(tokens, start=1):
             if verbose and token_i % 1000 == 0:
                _vprint('{}...'.format(token_i), no_tag=True, end='')
+
             # Fech the threshold to use as a distance
             repr_by_token[token].append(_find_threshold(token.encode('utf-8'),
                 reader))
+
         if verbose:
             _vprint('{}...Done!'.format(token_i), no_tag=True)
+
+            db_timings.append(datetime.utcnow() - db_timing_start)
+            if db_path_i != len(db_paths):
+                per_db_estimate = (sum(db_timings, timedelta())
+                        / len(db_timings))
+                completion_estimate = (per_db_estimate
+                        * (len(db_paths) - db_path_i))
+                _vprint('Estimated time until completion: {}'.format(
+                    completion_estimate))
 
     for token in tokens:
         yield token, repr_by_token[token]
