@@ -136,7 +136,9 @@ def main(args):
     tokens = [unicode(l, encoding=argp.input_encoding).rstrip('\n')
             for l in argp.input]
     for token, repr in _token_reprs(tokens, db_paths, verbose=argp.verbose):
-        print('{}\t{}'.format(token, '\t'.join(str(r) for r in repr)),
+        repr_tsv = '\t'.join(str(r) for r in repr)
+        # Assume that the user wants the output/input to have the same encoding
+        print((u'{}\t{}'.format(token, repr_tsv)).encode(argp.input_encoding),
                 file=argp.output)
 
     return 0
