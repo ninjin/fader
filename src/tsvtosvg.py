@@ -12,6 +12,7 @@ Version:    2012-09-13
 from argparse import ArgumentParser, FileType
 from collections import namedtuple
 from sys import stdin, stdout
+from xml.sax.saxutils import escape as xml_escape
 
 ### Constants
 NICE_COLOURS = (
@@ -68,7 +69,8 @@ def main(args):
         argp.output.write('\t')
         argp.output.write(('<text text-anchor="middle" x="{}" y="{}" '
             'style="fill: {};">{}</text>'
-            ).format(x_pos, y_pos, NICE_COLOURS[len(cats_seen) - 1], label))
+            ).format(x_pos, y_pos, NICE_COLOURS[len(cats_seen) - 1],
+                xml_escape(label)))
         argp.output.write('\n')
 
     argp.output.write('</svg>\n')
