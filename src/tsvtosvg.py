@@ -54,7 +54,7 @@ def main(args):
                 ).format(argp.width, argp.height))))
     argp.output.write('\n')
 
-    cats_seen = set()
+    cats_seen = []
     for line in (l.rstrip('\n') for l in argp.input):
         if not argp.colour:
             label, x_str, y_str = line.split('\t')
@@ -65,11 +65,12 @@ def main(args):
         x_pos = argp.border + (argp.width - 2 * argp.border) * float(x_str)
         y_pos = argp.border + (argp.height - 2 * argp.border) * float(y_str)
 
-        cats_seen.add(cat)
+        if cat not in cats_seen:
+            cats_seen.append(cat)
         argp.output.write('\t')
         argp.output.write(('<text text-anchor="middle" x="{}" y="{}" '
             'style="fill: {};">{}</text>'
-            ).format(x_pos, y_pos, NICE_COLOURS[len(cats_seen) - 1],
+            ).format(x_pos, y_pos, NICE_COLOURS[cats_seen.index(cat)],
                 xml_escape(label)))
         argp.output.write('\n')
 
