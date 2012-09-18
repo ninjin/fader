@@ -11,7 +11,7 @@ Version:    2012-09-13
 
 from argparse import ArgumentParser, FileType
 from collections import namedtuple
-from sys import stdin, stdout
+from sys import stderr, stdin, stdout
 from xml.sax.saxutils import escape as xml_escape
 
 ### Constants
@@ -67,11 +67,17 @@ def main(args):
 
         if cat not in cats_seen:
             cats_seen.append(cat)
+        try:
+            cat_colour = NICE_COLOURS[cats_seen.index(cat)]
+        except IndexError:
+            print >> stderr, ('ERROR: Too many categories, ran out of nice '
+                    'colours')
+            return -1
+
         argp.output.write('\t')
         argp.output.write(('<text text-anchor="middle" x="{}" y="{}" '
             'style="fill: {};">{}</text>'
-            ).format(x_pos, y_pos, NICE_COLOURS[cats_seen.index(cat)],
-                xml_escape(label)))
+            ).format(x_pos, y_pos, cat_colour, xml_escape(label)))
         argp.output.write('\n')
 
     argp.output.write('</svg>\n')
