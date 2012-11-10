@@ -11,6 +11,8 @@ Author:     Pontus Stenetorp    <pontus stenetorp se>
 Version:    2012-09-13
 '''
 
+from __future__ import print_function
+
 from argparse import ArgumentParser, FileType
 from math import sqrt
 from sys import stderr, stdin, stdout
@@ -46,19 +48,19 @@ def main(args):
         try:
             data_list.append([float(v) for v in line.split('\t')])
         except ValueError:
-            print >> stderr, ('ERROR: unable to read line {0} "{1}"'
-                    ).format(line_num, line)
+            print(('ERROR: unable to read line {line_num} "{line}"'
+                    ).format(line_num=line_num, line=line), file=stderr)
             return -1
 
     # Useful flag for analysis of optimal dimension
     if argp.dimensionality_search:
         sing_vals = svd(data_list, full_matrices=0, compute_uv=False)
         prev_sing_val = None
-        print '\t'.join(('Line', 'Sing. value', 'Delta', ))
+        print('\t'.join(('Line', 'Sing. value', 'Delta', )))
         for sing_val_i, sing_val in enumerate(sorted(abs(sing_vals)), start=1):
-            print '\t'.join(unicode(v) for v in (sing_val_i, sing_val,
+            print('\t'.join(unicode(v) for v in (sing_val_i, sing_val,
                 sing_val - prev_sing_val if prev_sing_val is not None else ''
-                ))
+                )))
             prev_sing_val = sing_val
         return 0
 
