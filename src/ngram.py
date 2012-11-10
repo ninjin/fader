@@ -1,16 +1,18 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 '''
 Generate n-grams from input strings.
 
 If you want liblinear-style feature representations, here is a nice hack:
 
-    paste ${FILE} <(./ngram.py -i ${FILE} | cut -f 2- \
+    paste <(cut -f 1 ${FILE}) <(./ngram.py -i ${FILE} | cut -f 2- \
             | sed -e 's| |_|g' -e 's|\t|:1 |g' -e 's|$|:1|g' -e 's|\t| |g')
 
 Author:     Pontus Stenetorp    <pontus stenetorp se>
 Version:    2012-11-09
 '''
+
+from __future__ import print_function
 
 from argparse import ArgumentParser, FileType
 from collections import defaultdict
@@ -56,7 +58,7 @@ def ngram_featurise(src_str, ngram=3, guard_char=DEFAULT_GUARD_CHAR):
     feat_cnt = defaultdict(int)
     for gram in ngram_gen(src_str, size=ngram, guard_char=guard_char):
         feat_cnt[gram] += 1
-        yield '{}#{}'.format(gram, feat_cnt[gram])
+        yield '{gram}#{cnt}'.format(gram=gram, cnt=feat_cnt[gram])
 
 def _argparser():
     argparser = ArgumentParser('Generate string n-grams')
@@ -81,8 +83,8 @@ def main(args):
         guard_char = argp.guard_char
 
     for line in (l.rstrip('\n') for l in argp.input):
-        print('{}\t{}'.format(line, '\t'.join(ngram_featurise(line,
-            guard_char=guard_char)), file=argp.output))
+        print('{string}\t{feats}'.format(string=line, feats='\t'.join(
+            ngram_featurise(line, guard_char=guard_char)), file=argp.output))
 
     return 0
 
