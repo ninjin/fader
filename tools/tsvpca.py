@@ -72,7 +72,6 @@ def main(args):
         data_mtrx = dok_matrix((len(data), max_col + 1), dtype=float)
         for row, entries in data.iteritems():
             for col, val in entries.iteritems():
-                print(row, col)
                 data_mtrx[(row, col)] = val
     else:
         data_mtrx = data
