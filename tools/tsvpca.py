@@ -14,11 +14,13 @@ Version:    2012-09-13
 from __future__ import print_function
 
 from argparse import ArgumentParser, FileType
+from collections import defaultdict
 from math import sqrt
 from sys import stderr, stdin, stdout
 
 from numpy.linalg import svd
-from sklearn.decomposition import PCA
+from scipy.sparse import dok_matrix
+from sklearn.decomposition import PCA, RandomizedPCA
 
 def _argparser():
     argparser = ArgumentParser('PCA for TSV input using Scikit-learn')
@@ -35,26 +37,49 @@ def _argparser():
                 'optimal number of dimensions'))
     argparser.add_argument('-n', '--no-normalisation', action='store_true',
             help="don't normalise the output to the range of [0,1]")
-
+    argparser.add_argument('-p', '--sparse', action='store_true',
+            help='input on the format ${COL}:${VAL} and stored sparsely')
+    argparser.add_argument('-r', '--randomised-pca', action='store_true',
+            help='use randomised PCA as opposed to vanilla PCA')
     return argparser
 
 def main(args):
     argp = _argparser().parse_args(args[1:])
 
     # Read the data
-    data_list = []
+    if argp.sparse:
+        data = defaultdict(dict)
+        max_col = None
+    else:
+        data = []
+
     for line_num, line in enumerate((l.rstrip('\n') for l in argp.input),
             start=1):
-        try:
-            data_list.append([float(v) for v in line.split('\t')])
-        except ValueError:
-            print(('ERROR: unable to read line {line_num} "{line}"'
-                    ).format(line_num=line_num, line=line), file=stderr)
-            return -1
+        if argp.sparse:
+            for col, val in ((int(c), float(v)) for c, v in
+                    (e.split(':') for e in line.split('\t'))):
+                data[line_num - 1][col] = val
+                max_col = max(max_col, col)
+        else:
+            try:
+                data.append([float(v) for v in line.split('\t')])
+            except ValueError:
+                print(('ERROR: unable to read line {line_num} "{line}"'
+                        ).format(line_num=line_num, line=line), file=stderr)
+                return -1
+
+    if argp.sparse:
+        data_mtrx = dok_matrix((len(data), max_col + 1), dtype=float)
+        for row, entries in data.iteritems():
+            for col, val in entries.iteritems():
+                print(row, col)
+                data_mtrx[(row, col)] = val
+    else:
+        data_mtrx = data
 
     # Useful flag for analysis of optimal dimension
     if argp.dimensionality_search:
-        sing_vals = svd(data_list, full_matrices=0, compute_uv=False)
+        sing_vals = svd(data_mtrx, full_matrices=0, compute_uv=False)
         prev_sing_val = None
         print('\t'.join(('Line', 'Sing. value', 'Delta', )))
         for sing_val_i, sing_val in enumerate(sorted(abs(sing_vals)), start=1):
@@ -65,8 +90,12 @@ def main(args):
         return 0
 
     # Run PCA
-    pca_conf = PCA(n_components=argp.dimensionality, copy=False)
-    res = pca_conf.fit_transform(data_list)
+    if not argp.randomised_pca:
+        pca_f = PCA
+    else:
+        pca_f = RandomizedPCA
+    pca_conf = pca_f(n_components=argp.dimensionality, copy=False)
+    res = pca_conf.fit_transform(data_mtrx)
 
     # Normalise the results?
     if not argp.no_normalisation:
