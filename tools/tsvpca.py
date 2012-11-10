@@ -3,6 +3,10 @@
 '''
 Perform Principal Component Analysis for TSV input using Scikit-learn.
 
+From: http://scikit-learn.org/stable/install.html
+
+    apt-get install python-sklearn
+
 Author:     Pontus Stenetorp    <pontus stenetorp se>
 Version:    2012-09-13
 '''
