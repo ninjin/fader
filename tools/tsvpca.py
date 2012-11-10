@@ -73,6 +73,8 @@ def main(args):
         for row, entries in data.iteritems():
             for col, val in entries.iteritems():
                 data_mtrx[(row, col)] = val
+        # No need to keep the dictionary matrix around any more
+        del data
     else:
         data_mtrx = data
 
