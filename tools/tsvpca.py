@@ -57,7 +57,7 @@ def main(args):
             start=1):
         if argp.sparse:
             for col, val in ((int(c), float(v)) for c, v in
-                    (e.split(':') for e in line.split('\t'))):
+                    (e.rsplit(':', 1) for e in line.split('\t'))):
                 data[line_num - 1][col] = val
                 max_col = max(max_col, col)
         else:
